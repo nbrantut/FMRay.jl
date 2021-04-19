@@ -5,7 +5,7 @@ using Roots #this is for velocity stuff
 
 export march
 
-include("fmm.jl")
+include("main.jl")
 include("velocity.jl")
 
 end
