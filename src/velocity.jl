@@ -1,7 +1,7 @@
 function vgroup(vv, vh, ϕ)
     E = vv/vh
     θ = phase_angle(vv, vh, ϕ)
-    dv = sin(2θ)*(vv-vh)
+    dv = sin(2θ)*(vh-vv)
     return sqrt(vphase(vv,vh,θ)^2 + dv^2)
 end
 

@@ -41,7 +41,7 @@ function getneighbours!(nhb::Vector{CartesianIndex{3}}, index::CartesianIndex{3}
     nhb[6] = index + CartesianIndex(0,0,1)
 end
 
-function march(isource::CartesianIndex{3}, Vh::AbstractArray, Vv::AbstractArray, h; sourcebox=true)
+function march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray, h; sourcebox=true)
 
     if !isequal(size(Vh), size(Vv))
         error("Input arrays must be of same dimensions.")
@@ -114,39 +114,38 @@ end
 function updateT(i, i0, T, known, vv, vh, h)
 
     Tbar = Inf
-    times = zeros(3)
-    ttimes = zeros(3)
-    switches = [false, false, false]
-    tests = [false, false, false]
+
     for Δ in findallΔ(i,i0)
-        # compute indices of all vertices of tetrahedron surrounding node i
-        #indices = [i + d for d in Δ]
-        # check is they exists and are known
-        #tests = [checkbounds(Bool, T, j) && known[j] for j in indices]
-        # get arrival times and switches at each vertex of tetrahedron
-        #times = zeros(3)
-        #ttimes = zeros(3)
-        #switches = [false, false, false]
-        times .= 0.0
-        ttimes .= 0.0
-        switches .= false
-        for k in 1:3
-            index = i + Δ[k]
-            tests[k] = checkbounds(Bool, T, index) && known[index]
-            if tests[k]
-                iback = index
-                times[k] = T[iback]
-                ibback = index+Δ[k]
-                if checkbounds(Bool, T, ibback) && known[ibback] && (T[ibback]<T[iback])
-                    ttimes[k] = T[ibback]
-                    switches[k] = true
-                end
-            end
-        end
-        Tbar = min(Tbar, compute_T(tests, times, ttimes, switches, vv, vh, h))
+        test1, time1, ttime1, switch1 = checkΔ(i,Δ[1],T,known)
+        test2, time2, ttime2, switch2 = checkΔ(i,Δ[2],T,known)
+        test3, time3, ttime3, switch3 = checkΔ(i,Δ[3],T,known)
+        Tbar = min(Tbar, compute_T((test1,test2,test3),
+                                   (time1,time2,time3),
+                                   (ttime1,ttime2,ttime3),
+                                   (switch1, switch2, switch3),
+                                   vv, vh, h))
     end
     return Tbar
 end
+
+function checkΔ(i,Δ,T,known)
+    index = i + Δ
+    test = checkbounds(Bool, T, index) && known[index]
+    time = 0.0
+    ttime = 0.0
+    switch = false
+    if test
+        iback = index
+        time = T[iback]
+        ibback = index+Δ
+        if checkbounds(Bool, T, ibback) && known[ibback] && (T[ibback]<T[iback])
+            ttime = T[ibback]
+            switch = true
+        end
+    end
+    return test, time, ttime, switch
+end
+
 
 
 # get all the (x,y,z) neighbours of point i, updated from known point i0
