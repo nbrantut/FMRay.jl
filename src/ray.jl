@@ -1,3 +1,15 @@
+"""
+    traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
+
+Compute a vector of coordinates along a ray traced between a `receiver` (given by its cartesian coordinates) and a source (with index `isource`), given an array of arrival times `T`, vertical wave speed `Vv`, horizontal wave speed `Vh`, and grid spacigin `h`. The `origin` parameter are the coordinates of the origin in the reference frame where (0,0,0) is at index (1,1,1). Parameter `ds` is the along-ray spacing between points, which defaults to grid spacing `h`.
+
+Output:
+* ray ....... the vector of points along the ray
+* ind ....... vector of indices of the nearest neighbours of each ray point in the original T grid
+* dh ........ for each ray point, derivative of arrival time with respect to log(Vh)
+* dv ......... for each ray point, derivative of arrival time with respect fo log(Vv)
+* tanphase ... for each ray point, tangent of phase angle at that point.
+"""
 function traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
 
     Nx, Ny, Nz = size(T)
@@ -111,6 +123,11 @@ function traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh,
     return ray, ind, dh, dv, tanphase
 end
 
+"""
+    traceray(receiver::NTuple{3,Ty}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
+
+Method where index of source node is automatically computed as the point where T is minimum (should be 0 there!).
+"""
 function traceray(receiver::NTuple{3,Ty}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
     isource = argmin(T)
     return traceray(receiver, isource, T, Vv, Vh, h; origin, ds)

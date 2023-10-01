@@ -8,6 +8,7 @@ export march, traceray
 export refine, refine!, coarsen_derivative, coarsen_derivative!
 export precomputeT, locatelookup
 export domainsize, getcartposition, getcartindex
+export vgroup, vphase, tan_group_angle, phase_angle
 
 include("main.jl")
 include("velocity.jl")

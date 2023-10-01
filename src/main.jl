@@ -6,41 +6,13 @@ end
 Base.isless(a::Node, b::Node) = isless(a.T,b.T)
 Base.isequal(a::Node, b::Node) = isequal(a.T,b.T)
 
+"""
+    march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray, h; sourcebox=true)
 
-#=
-function getneighbours(index::CartesianIndex{3}, sz)
-    nhb = typeof(index)[]
-    if index[1]>1
-        push!(nhb, index + CartesianIndex(-1,0,0))
-    end
-    if index[1]<sz[1]
-        push!(nhb, index + CartesianIndex(1,0,0))
-    end
-    if index[2]>1
-        push!(nhb, index + CartesianIndex(0,-1,0))
-    end
-    if index[2]<sz[2]
-        push!(nhb, index + CartesianIndex(0,1,0))
-    end
-    if index[3]>1
-        push!(nhb, index + CartesianIndex(0,0,-1))
-    end
-    if index[3]<sz[3]
-        push!(nhb, index + CartesianIndex(0,0,1))
-    end
-    return nhb
-end
-=#
+Compute arrival times using source position `isource` (CartesianIndex), a vertical wave speed structure `Vv` (vertical=z direction) and a horizontal wave speed structure `Vh`, for a grid spacing `h`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
 
-function getneighbours!(nhb::Vector{CartesianIndex{3}}, index::CartesianIndex{3})
-    nhb[1] = index + CartesianIndex(-1,0,0)
-    nhb[2] = index + CartesianIndex(1,0,0)
-    nhb[3] = index + CartesianIndex(0,-1,0)
-    nhb[4] = index + CartesianIndex(0,1,0)
-    nhb[5] = index + CartesianIndex(0,0,-1)
-    nhb[6] = index + CartesianIndex(0,0,1)
-end
-
+Output is an array of arrival times with same size as `Vv` and `Vh`.
+"""
 function march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray, h; sourcebox=true)
 
     if !isequal(size(Vh), size(Vv))
@@ -108,7 +80,16 @@ function march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray,
         end
     end
 
-    return T, iter
+    return T
+end
+
+function getneighbours!(nhb::Vector{CartesianIndex{3}}, index::CartesianIndex{3})
+    nhb[1] = index + CartesianIndex(-1,0,0)
+    nhb[2] = index + CartesianIndex(1,0,0)
+    nhb[3] = index + CartesianIndex(0,-1,0)
+    nhb[4] = index + CartesianIndex(0,1,0)
+    nhb[5] = index + CartesianIndex(0,0,-1)
+    nhb[6] = index + CartesianIndex(0,0,1)
 end
 
 function updateT(i, i0, T, known, vv, vh, h)

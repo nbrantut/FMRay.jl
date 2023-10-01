@@ -1,3 +1,11 @@
+"""
+    domainsize(Nx, Ny, Nz, h, origin)
+
+Compute the coordinate range of the domain in 3 dimensions, using `Nx`, `Ny`, `Nz` nodes in x, y, z directions, a node spacing of `h`, and an origin point with coordinates `origin`. Origin is the position of the new origin point in the default coordinate system that has the origin (0,0,0) at index (1,1,1).
+
+Output is the set of values (xmin, xmax, ymin, ymax, zmin, zmax).
+
+"""
 function domainsize(Nx, Ny, Nz, h, origin)
     xmin = - origin[1]
     xmax = (Nx-1)*h - origin[1]
@@ -8,6 +16,11 @@ function domainsize(Nx, Ny, Nz, h, origin)
     return xmin, xmax, ymin, ymax, zmin, zmax
 end
 
+"""
+    getcartposition(ci::CartesianIndex{3}, h, origin)
+
+Compute the coordinates of the point with index `ci` in  grid with spacing `h` and origin `origin`. Does not check at all the grid total size.
+"""
 function getcartposition(ci::CartesianIndex{3}, h, origin)
     i0,j0,k0 = Tuple(ci)
     x0 = (i0-1)*h - origin[1]
@@ -16,6 +29,13 @@ function getcartposition(ci::CartesianIndex{3}, h, origin)
     return x0, y0, z0
 end
 
+"""
+    getcartindex(x::NTuple{3,T}, dims, h, origin)
+
+Get the nearest index (CartesianIndex) of the point with coordinates `x` in grid with dimensions `dims`, spacing `h`, and origin `origin`.
+
+Output is a CartesianIndex.
+"""
 function getcartindex(x::NTuple{3,T}, dims, h, origin) where T<:Number
     i = max(1, min(dims[1], round(Int, (x[1]+origin[1])/h) + 1))
     j = max(1, min(dims[2], round(Int, (x[2]+origin[2])/h) + 1))

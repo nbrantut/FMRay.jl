@@ -1,13 +1,31 @@
+"""
+    precomputeT(isources::Vector{CartesianIndex{3}}, Vv, Vh, h)
+
+For all source positions (given by a vector of indices), compute arrival times.
+"""
 function precomputeT(isources::Vector{CartesianIndex{3}}, Vv, Vh, h)
-    return [march(isource, Vv, Vh, h)[1] for isource in isources]
+    return [march(isource, Vv, Vh, h) for isource in isources]
 end
 
+"""
+    precomputeT(sources::Vector{NTuple{3,T}}, Vv, Vh, h;
+                     origin=(0.,0.,0.)) where T<:Number
+
+Method where source positions are given by cartesian coordinates. Requires additionnal origin argument.
+"""
 function precomputeT(sources::Vector{NTuple{3,T}}, Vv, Vh, h;
                      origin=(0.,0.,0.)) where T<:Number
     isrc = [getcartindex(s, size(Vv), h, origin) for s in sources]
     return precomputeT(isrc, Vv, Vh, h)
 end
 
+"""
+    locateindex(Ttab, arrivals, σ)
+
+Full gridsearch for position of source based on an array of precomputed times `Ttab`, a vector of arrival times `arrivals` at each station, and a scalar observational error `σ`. Uses ℓ₁ norm minimisation.
+
+Output index of best location, origin time, and theoretical arrival times.
+"""
 function locateindex(Ttab, arrivals, σ)
     L = 0.0
     Lmax = -Inf
@@ -67,13 +85,24 @@ function fastmedian!(v)
     end
 end
 
+"""
+    locatelookup(Ttab, arrivals, σ, h, origin)
 
+Full gridsearch for position of source based on an array of precomputed times `Ttab`, a vector of arrival times `arrivals` at each station, and a scalar observational error `σ`. Uses ℓ₁ norm minimisation.
+
+Output position of best location, origin time, and theoretical arrival times.
+"""
 function locatelookup(Ttab, arrivals, σ, h, origin)
     index, t0, Tcalc = locateindex(Ttab, arrivals, σ)
     x0,y0,z0 = getcartposition(index, h, origin)
     return x0, y0, z0, t0, Tcalc
 end
 
+"""
+    locatelookup(Ttab, arrivals, σ, h, origin, n)
+
+Method where grid is refined around best location by a factor `n`, and refined best location is determined based on interpolated arrival times.
+"""
 function locatelookup(Ttab, arrivals, σ, h, origin, n)
     (index,t0,Tcalc) = locateindex(Ttab, arrivals, σ)
     x0,y0,z0 = getcartposition(index, h, origin)
