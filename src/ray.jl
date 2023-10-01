@@ -70,11 +70,11 @@ function traceray(receiver::NTuple{3,Number}, isource::CartesianIndex{3}, T, G::
 
         # gradient
         gradx = (T[i_fwd,j_near,k_near] -
-                 T[i_bck,j_near,k_near])/(h*(i_fwd-i_bck) + small)
+                 T[i_bck,j_near,k_near])/(G.h*(i_fwd-i_bck) + small)
         grady = (T[i_near,j_fwd,k_near] -
-                 T[i_near,j_bck,k_near])/(h*(j_fwd-j_bck) + small)
+                 T[i_near,j_bck,k_near])/(G.h*(j_fwd-j_bck) + small)
         gradz = (T[i_near,j_near,k_fwd] -
-                 T[i_near,j_near,k_bck])/(h*(k_fwd-k_bck) + small)
+                 T[i_near,j_near,k_bck])/(G.h*(k_fwd-k_bck) + small)
         
         if (abs(gradz)>eps())
             gxy = sqrt(gradx*gradx + grady*grady)
