@@ -3,7 +3,7 @@
 
     Take a scalar quantity X defined on a grid, and do trilinear interpolation to obtain that quantity Xf on a refined grid with refinement factor n.
     """
-function refine!(Xf, X, n)
+function refine!(Xf::AbstractArray, X::AbstractArray, n::Int)
 
     Nx,Ny,Nz = size(X)
     (size(Xf)==((Nx-1)*n+1, (Ny-1)*n+1, (Nz-1)*n+1)) || error("input arrays are of incorrect size")
@@ -19,15 +19,36 @@ function refine!(Xf, X, n)
 end
 
 """
+	refine!(Gf::Grid, G::Grid, n::Int)
+
+Method to refine vv anv vh of grid.
+"""
+function refine!(Gf::Grid, G::Grid, n::Int)
+    refine!(Gf.Vv, G.Vv, n)
+    refine!(Gf.Vh, G.Vh, n)
+end
+
+"""
         refine(X,n)
 
     Take a scalar quantity X defined on a regular orthonormal grid, and do trilinear interpolation to obtain that quantity on a refined grid with refinement factor n.
 """
-function refine(X, n)
+function refine(X::AbstractArray, n::Int)
     Nx,Ny,Nz = size(X)
     Xf = Array{eltype(X), 3}(undef, (Nx-1)*n+1, (Ny-1)*n+1, (Nz-1)*n+1)
     refine!(Xf,X,n)
     return Xf
+end
+
+"""
+	refine(G::Grid, n::Int)
+
+Method to refine vv and vh in a grid. Return new grid.
+"""
+function refine(G::Grid, n::Int)
+    Vvf = refine(G.Vv, n)
+    Vhf = refine(G.Vh, n)
+    return Grid(G.h/n, Vvf, Vhf, G.origin)
 end
 
 """

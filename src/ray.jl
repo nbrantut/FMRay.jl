@@ -1,7 +1,7 @@
 """
-    traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
+    traceray(receiver::NTuple{3,Number}, isource::CartesianIndex{3}, T, G::Grid; ds=G.h)
 
-Compute a vector of coordinates along a ray traced between a `receiver` (given by its cartesian coordinates) and a source (with index `isource`), given an array of arrival times `T`, vertical wave speed `Vv`, horizontal wave speed `Vh`, and grid spacigin `h`. The `origin` parameter are the coordinates of the origin in the reference frame where (0,0,0) is at index (1,1,1). Parameter `ds` is the along-ray spacing between points, which defaults to grid spacing `h`.
+Compute a vector of coordinates along a ray traced between a `receiver` (given by its cartesian coordinates) and a source (with index `isource`), given an array of arrival times `T` and grid `G`. Parameter `ds` is the along-ray spacing between points, which defaults to grid spacing `h`.
 
 Output:
 * ray ....... the vector of points along the ray
@@ -10,17 +10,18 @@ Output:
 * dv ......... for each ray point, derivative of arrival time with respect fo log(Vv)
 * tanphase ... for each ray point, tangent of phase angle at that point.
 """
-function traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
+function traceray(receiver::NTuple{3,Number}, isource::CartesianIndex{3}, T, G::Grid; ds=G.h)
 
-    Nx, Ny, Nz = size(T)
+    Nx, Ny, Nz = size(G)
+    
     maxit = 3*max(Nx,max(Ny,Nz))
     small = 1e-23
     
     # domain size
-    xmin, xmax, ymin, ymax, zmin, zmax = domainsize(Nx, Ny, Nz, h, origin)
+    xmin, xmax, ymin, ymax, zmin, zmax = domainsize(G)
 
     # source position in cartesian coordinates
-    x0,y0,z0 = getcartposition(isource, h, origin)
+    x0,y0,z0 = getcartposition(isource, G)
     
     # initialise containers
     ray = NTuple{3,Float64}[]   # ray coordinates
@@ -51,15 +52,13 @@ function traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh,
     while (dist>ds)&&(c<maxit)
 
         # find nearest neighbour index
-        i_near, j_near, k_near = _findnearest(xr-origin[1],
-                                              yr-origin[2],
-                                              zr-origin[3],
-                                              h)
+        i_near, j_near, k_near = _findnearest(xr,yr,zr,G)
+
         push!(ind, CartesianIndex(i_near, j_near, k_near))
 
         # short cuts
-        vhnear = Vh[i_near,j_near,k_near]
-        vvnear = Vv[i_near,j_near,k_near]
+        vhnear = G.Vh[i_near,j_near,k_near]
+        vvnear = G.Vv[i_near,j_near,k_near]
 
         # neighbours        
         i_fwd = min(i_near+1, Nx)
@@ -124,19 +123,19 @@ function traceray(receiver::NTuple{3,Ty}, isource::CartesianIndex{3}, T, Vv, Vh,
 end
 
 """
-    traceray(receiver::NTuple{3,Ty}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
+    traceray(receiver::NTuple{3,Number}, T, G:Grid; ds=h)
 
 Method where index of source node is automatically computed as the point where T is minimum (should be 0 there!).
 """
-function traceray(receiver::NTuple{3,Ty}, T, Vv, Vh, h; origin=(0.,0.,0.), ds=h) where Ty<:Number
+function traceray(receiver::NTuple{3,Number}, T, G::Grid; ds=G.h)
     isource = argmin(T)
-    return traceray(receiver, isource, T, Vv, Vh, h; origin, ds)
+    return traceray(receiver, isource, T, G; ds)
 end
 
-function _findnearest(x,y,z, h)
-    return round(Int,  x/h + 1),
-    round(Int, y/h + 1),
-    round(Int, z/h + 1)
+function _findnearest(x,y,z, G::Grid)
+    return round(Int,  (x-G.origin[1])/G.h + 1),
+    round(Int, (y-G.origin[2])/G.h + 1),
+    round(Int, (z-G.origin[3])/G.h + 1)
 end
 
 function _distance(X,Y)

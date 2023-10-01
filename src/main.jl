@@ -6,20 +6,34 @@ end
 Base.isless(a::Node, b::Node) = isless(a.T,b.T)
 Base.isequal(a::Node, b::Node) = isequal(a.T,b.T)
 
+struct Grid
+    h::Number
+    Vv::AbstractArray
+    Vh::AbstractArray
+    origin::NTuple{3,Number}
+    Grid(h,vv,vh,orig) = size(vv) != size(vh) ? error("Vv and Vh dimensions must be equal") : new(h, vv, vh, orig)
+end
+
+# construct isotropic grid with default origin
+Grid(h,V) = Grid(h, V, V, (0.,0.,0.))
+# construct isotropic grid with user-defined origin
+Grid(h,V::AbstractArray,x::NTuple{3,Number}) = Grid(h, V, V, x)
+# construct anisotropic grid with default origin
+Grid(h,V::AbstractArray,H::AbstractArray) = Grid(h, V, H, (0.,0.,0.))
+
+Base.size(g::Grid) = size(g.Vv)
+
+
 """
-    march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray, h; sourcebox=true)
+    march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
 
-Compute arrival times using source position `isource` (CartesianIndex), a vertical wave speed structure `Vv` (vertical=z direction) and a horizontal wave speed structure `Vh`, for a grid spacing `h`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
+Compute arrival times using source position `isource` (CartesianIndex), and grid `G`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
 
-Output is an array of arrival times with same size as `Vv` and `Vh`.
+Output is an array of arrival times with same size as the grid.
 """
-function march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray, h; sourcebox=true)
-
-    if !isequal(size(Vh), size(Vv))
-        error("Input arrays must be of same dimensions.")
-    end
+function march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
     
-    dims = size(Vv)
+    dims = size(G)
 
     # initialise arrays
     T = fill(Inf, dims)
@@ -37,12 +51,12 @@ function march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray,
     nhb = Vector{CartesianIndex{3}}(undef,6)
 
     if sourcebox
-        initialise_box!(isource, T, Vv[isource], Vh[isource], h, trial, unknown, trialheap, trialhandle)
+        initialise_box!(isource, T, G.Vv[isource], G.Vh[isource], G.h, trial, unknown, trialheap, trialhandle)
     else
         getneighbours!(nhb, isource)
         for n in nhb
             if checkbounds(Bool, T, n)
-                T[n] = updateT(n, isource, T, known, Vv[n], Vh[n], h)
+                T[n] = updateT(n, isource, T, known, G.Vv[n], G.Vh[n], G.h)
                 unknown[n] = false
                 trial[n] = true
                 trialhandle[n] = push!(trialheap, Node(n, T[n]))
@@ -64,7 +78,7 @@ function march(isource::CartesianIndex{3}, Vv::AbstractArray, Vh::AbstractArray,
         for n in nhb
             if checkbounds(Bool, T, n)
                 if unknown[n] || trial[n]
-                    Tbar = updateT(n, ind, T, known, Vv[n], Vh[n], h)
+                    Tbar = updateT(n, ind, T, known, G.Vv[n], G.Vh[n], G.h)
                     if unknown[n]
                         T[n] = Tbar
                         unknown[n] = false

@@ -17,6 +17,16 @@ function domainsize(Nx, Ny, Nz, h, origin)
 end
 
 """
+	domainsize(G::Grid)
+
+Method for Grid.
+"""
+function domainsize(G::Grid)
+    Nx, Ny, Nz = size(G)
+    return domainsize(Nx, Ny, Nz, G.h, G.origin)
+end
+
+"""
     getcartposition(ci::CartesianIndex{3}, h, origin)
 
 Compute the coordinates of the point with index `ci` in  grid with spacing `h` and origin `origin`. Does not check at all the grid total size.
@@ -30,15 +40,33 @@ function getcartposition(ci::CartesianIndex{3}, h, origin)
 end
 
 """
+	getcartposition(ci::CartesianIndex{3}, G::Grid)
+
+Method with Grid input.
+"""
+function getcartposition(ci::CartesianIndex{3}, G::Grid)
+    return getcartposition(ci, G.h, G.origin)
+end
+
+"""
     getcartindex(x::NTuple{3,T}, dims, h, origin)
 
 Get the nearest index (CartesianIndex) of the point with coordinates `x` in grid with dimensions `dims`, spacing `h`, and origin `origin`.
 
 Output is a CartesianIndex.
 """
-function getcartindex(x::NTuple{3,T}, dims, h, origin) where T<:Number
+function getcartindex(x::NTuple{3,Number}, dims, h, origin)
     i = max(1, min(dims[1], round(Int, (x[1]+origin[1])/h) + 1))
     j = max(1, min(dims[2], round(Int, (x[2]+origin[2])/h) + 1))
     k = max(1, min(dims[3], round(Int, (x[3]+origin[3])/h) + 1))
     return CartesianIndex(i,j,k)
+end
+
+"""
+	getcartindex(x::NTuple{3,T}, G::Grid)
+
+Method with Grid input.
+"""
+function getcartindex(x::NTuple{3,Number}, G::Grid)
+    return getcartindex(x, size(G), G.h, G.origin)
 end
