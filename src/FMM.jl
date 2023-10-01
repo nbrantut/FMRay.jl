@@ -4,6 +4,7 @@ using DataStructures
 using Roots #this is for velocity stuff
 import Statistics: middle
 
+export Grid
 export march, traceray
 export refine, refine!, coarsen_derivative, coarsen_derivative!
 export precomputeT, locatelookup
