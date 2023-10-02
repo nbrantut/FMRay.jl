@@ -27,11 +27,11 @@ Base.size(g::Grid) = size(g.Vv)
 """
     march(source, G::Grid; sourcebox=true)
 
-Compute arrival times using source position `source` (CartesianIndex OR cartesian coordinates), and grid `G`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
+Compute arrival times using source position `source` (CartesianIndex), and grid `G`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
 
 Output is an array of arrival times with same size as the grid.
 """
-function march(source, G::Grid; sourcebox=true)
+function march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
     
     dims = size(G)
 
