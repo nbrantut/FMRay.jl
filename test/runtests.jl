@@ -33,7 +33,7 @@ using Test
 
         @test isapprox(tanphase[end], tan(phase_angle(1.2,1,pi/4)), rtol=0.05)
 
-        dvtrue, dhtrue = FMM.tderivatives(tan(phase_angle(1.2,1,pi/4)), 1.2, 1) .* (1.2, 1.0) .*G.h
+        dvtrue, dhtrue = FMRay.tderivatives(tan(phase_angle(1.2,1,pi/4)), 1.2, 1) .* (1.2, 1.0) .*G.h
 
         @test isapprox(dv[end], dvtrue, rtol=0.06)
         @test isapprox(dh[end], dhtrue, rtol=0.06)
@@ -54,7 +54,7 @@ using Test
         @test isapprox(tanphase[end], tan(phase_angle(1.2, 1, atan(sqrt(2)))), rtol=0.06)
 
 
-        dvtrue, dhtrue = FMM.tderivatives(tan(phase_angle(1.2,1,atan(sqrt(2)))), 1.2, 1) .* (1.2, 1.0) .*G.h
+        dvtrue, dhtrue = FMRay.tderivatives(tan(phase_angle(1.2,1,atan(sqrt(2)))), 1.2, 1) .* (1.2, 1.0) .*G.h
 
         @test isapprox(dv[end], dvtrue, rtol=0.1)
         @test isapprox(dh[end], dhtrue, rtol=0.06)
