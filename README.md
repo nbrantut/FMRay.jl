@@ -9,7 +9,7 @@ Immediate applications can be written to solve the Local Earthquake Tomography p
 
 Since this package is mostly a port to Julia, the key original paper describing this code is:
 
-Brantut, N. (2018), Time-resolved tomography using acoustic emissions in the laboratory, and application to snadstone compaction, /Geophys. J. Int./, 213, 2177-2192.
+Brantut, N. (2018), Time-resolved tomography using acoustic emissions in the laboratory, and application to snadstone compaction, *Geophys. J. Int.*, 213, 2177-2192.
 
 and references therein.
 
@@ -28,9 +28,7 @@ Then test using:
 FMRay main tool is an implementation of the Fast Marching Method to solve the Eikonal equation in 3D, possibly anisotropic media.
 
 The type of anisotropy is restricted to VTI, with the following parameterisation:
-$$
-V(\theta) = V_v \cos^2(\theta) + V_h \sin^2(\theta),
-$$
+$$V(\theta) = V_v \cos^2(\theta) + V_h \sin^2(\theta),$$
 where $V_v$ and $V_h$ are the vertical and horizontal phase velocities, respectively, $\theta$ is the phase angle, and $V(\theta)$ is the phase velocity. Note that the solver is not valid for anisotropy that is too large.
 
 ## Usage
