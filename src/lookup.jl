@@ -1,28 +1,26 @@
 """
-    precomputeT(isources::Vector{CartesianIndex{3}}, Vv, Vh, h)
+    precomputeT(isources::Vector{CartesianIndex{3}}, G::Grid)
 
 For all source positions (given by a vector of indices), compute arrival times.
 """
-function precomputeT(isources::Vector{CartesianIndex{3}}, Vv, Vh, h)
-    return [march(isource, Vv, Vh, h) for isource in isources]
+function precomputeT(isources::Vector{CartesianIndex{3}}, G::Grid)
+    return [march(isource, G) for isource in isources]
 end
 
 """
-    precomputeT(sources::Vector{NTuple{3,T}}, Vv, Vh, h;
-                     origin=(0.,0.,0.)) where T<:Number
+    precomputeT(sources::Vector{NTuple{3,Number}}, G::Grid)
 
 Method where source positions are given by cartesian coordinates. Requires additionnal origin argument.
 """
-function precomputeT(sources::Vector{NTuple{3,T}}, Vv, Vh, h;
-                     origin=(0.,0.,0.)) where T<:Number
-    isrc = [getcartindex(s, size(Vv), h, origin) for s in sources]
-    return precomputeT(isrc, Vv, Vh, h)
+function precomputeT(sources::Vector{NTuple{3,Number}}, G::Grid)
+    isrc = [getcartindex(s, G) for s in sources]
+    return precomputeT(isrc, G)
 end
 
 """
     locateindex(Ttab, arrivals, σ)
 
-Full gridsearch for position of source based on an array of precomputed times `Ttab`, a vector of arrival times `arrivals` at each station, and a scalar observational error `σ`. Uses ℓ₁ norm minimisation.
+Full gridsearch for position of source based on an array of precomputed times `Ttab`, a vector of arrival times `arrivals` at each station, and observational error `σ` (can be vector or scalar). Uses ℓ₁ norm minimisation.
 
 Output index of best location, origin time, and theoretical arrival times.
 """

@@ -25,13 +25,13 @@ Base.size(g::Grid) = size(g.Vv)
 
 
 """
-    march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
+    march(source, G::Grid; sourcebox=true)
 
-Compute arrival times using source position `isource` (CartesianIndex), and grid `G`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
+Compute arrival times using source position `source` (CartesianIndex OR cartesian coordinates), and grid `G`. With the optional kw argument `sourcebox` set to `true`, the computation starts with an analytical solution for arrival time in the immediate vicinity of the source, which minimises the global error, but does not account exactly for the velocity structure in the source region.
 
 Output is an array of arrival times with same size as the grid.
 """
-function march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
+function march(source, G::Grid; sourcebox=true)
     
     dims = size(G)
 
@@ -44,9 +44,14 @@ function march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
     trialheap = MutableBinaryMinHeap{Node}()
     trialhandle = Array{Int}(undef, dims)
 
-    T[isource] = 0.0
-    known[isource] = true
-    unknown[isource] = false
+    isource = gettimeatsource!(T, source, G, known, unknown, trial, trialheap, trialhandle)
+
+    _march!(T, isource, G, known, unknown, trial, trialheap, trialhandle; sourcebox)
+
+    return T
+end
+
+function _march!(T, isource, G, known, unknown, trial, trialheap, trialhandle; sourcebox)
 
     nhb = Vector{CartesianIndex{3}}(undef,6)
 
@@ -94,7 +99,52 @@ function march(isource::CartesianIndex{3}, G::Grid; sourcebox=true)
         end
     end
 
-    return T
+end
+
+function gettimeatsource!(T, isource::CartesianIndex{3}, G::Grid, known, unknown, trial, trialheap, trialhandle)
+    T[isource] = 0.0
+    known[isource] = true
+    unknown[isource] = false
+
+    return isource
+end
+
+function gettimeatsource!(T, source::NTuple{3}{Number}, G::Grid, known, unknown, trial, trialheap, trialhandle)
+    
+    x,y,z, IND... = get_interp_coef(source, G)
+    vv = _interp3d(G.Vv, x,y,z,IND...)
+    vh = _interp3d(G.Vh, x,y,z,IND...)
+    t = [get_group_time(vv, vh, x  , y  , z),
+         get_group_time(vv, vh, 1-x, y  , z),
+         get_group_time(vv, vh, x  , 1-y, z),
+         get_group_time(vv, vh, x  , y  , 1-z),
+         get_group_time(vv, vh, 1-x, 1-y, z),
+         get_group_time(vv, vh, 1-x, y  , 1-z),
+         get_group_time(vv, vh, x  , 1-y, 1-z),
+         get_group_time(vv, vh, 1-x, 1-y, 1-z)]
+
+    for k in eachindex(IND)
+        ind = IND[k]
+        T[ind] = t[k]
+        unknown[ind] = false
+        trial[ind] = true
+        trialhandle[ind] = push!(trialheap, Node(ind, T[ind]))
+    end
+
+    nod = pop!(trialheap)
+    isource = nod.index
+    trial[isource] = false
+    known[isource] = true
+
+    return isource
+
+end
+
+function get_group_time(vv, vh, x, y, z)
+    d = sqrt(x^2+y^2+z^2)
+    ga =  acos(z/d)
+    vg = vgroup(vv, vh, ga)
+    return d/vg
 end
 
 function getneighbours!(nhb::Vector{CartesianIndex{3}}, index::CartesianIndex{3})
@@ -343,31 +393,44 @@ end
 
 function initialise_box!(isource, T, vv, vh, h, trial, unknown, trialheap, trialhandle)
     v45 = vgroup(vv, vh, π/4)
+    t0 = T[isource]
     for i in -1:1, j in -1:1, k in -1:1
         ind = isource + CartesianIndex(i,j,k)
         if checkbounds(Bool, T, ind)
-            if !(k==0)
-                if (i==0) & (j==0)
-                    T[ind] = h/vv
-                elseif (!(i==0) & (j==0)) | ((i==0) & !(j==0))
-                    T[ind] = (h/v45)*sqrt(2)
-                else
-                    T[ind] = (h/v45)*sqrt(3)
+            if unknown[ind] || trial[ind]
+
+                # compute possible Tbar using analytical solution
+                if !(k==0)
+                    if (i==0) & (j==0)
+                        Tbar = t0 + h/vv
+                    elseif (!(i==0) & (j==0)) | ((i==0) & !(j==0))
+                        Tbar = t0 + (h/v45)*sqrt(2)
+                    else
+                        Tbar = t0 + (h/v45)*sqrt(3)
+                    end
+                elseif !(i==0) || !(j==0)
+                    if (i==0) || (j==0)
+                        Tbar = t0 + h/vh
+                    else
+                        Tbar = t0 + (h/vh)*sqrt(2)
+                    end
                 end
-                unknown[ind] = false
-                trial[ind] = true
-                trialhandle[ind] = push!(trialheap, Node(ind, T[ind]))
-            elseif !(i==0) || !(j==0)
-                if (i==0) || (j==0)
-                    T[ind] = h/vh
-                else
-                    T[ind] = (h/vh)*sqrt(2)
+
+                # if unkown, assign and move on
+                if unknown[ind]
+                    T[ind] = Tbar
+                    unknown[ind] = false
+                    trial[ind] = true
+                    trialhandle[ind] = push!(trialheap, Node(ind, T[ind]))
                 end
-                unknown[ind] = false
-                trial[ind] = true
-                trialhandle[ind] = push!(trialheap, Node(ind, T[ind]))
+
+                # if already trialed, check and update if needed
+                if trial[ind] && (Tbar<T[ind])
+                    T[ind] = Tbar
+                    update!(trialheap, trialhandle[ind], Node(ind, Tbar))
+                end
+
             end
-            
-        end
-    end         
+        end         
+    end
 end
