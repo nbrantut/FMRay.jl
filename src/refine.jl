@@ -148,46 +148,6 @@ function get_interp_coef(indf::CartesianIndex{3}, Nx, Ny, Nz, n)
     
 end
 
-"""
-    get_interp_coef(source::NTuple{3}{Number}, G::Grid)
-
-From a point with coordinates `source` and grid `G`, return the 6 indices (possibly overlapping!) of nearest grid points around the source, together with relative positions (x,y,z) of the source point within the box formed by its 6 neighbours.
-
-Output is x,y,z,i_000,i_100,...
-
-with i_000 the CartesianIndex of the point in the bottom left corner of the box.
-"""
-function get_interp_coef(source::NTuple{3}{Number}, G::Grid)
-    # find neighbouring points in grid
-    Nx, Ny, Nz = size(G)
-    # get the index of point as a float
-    float_indices = [((source[k] + G.origin[k])/G.h + 1) for k in 1:3]
-    # find i,j,k indices of the nearest neighbours within the grid, safely:
-    I     = min(Nx, max(1, floor(Int, float_indices[1])))
-    Iplus = max(1, min(Nx, ceil(Int, float_indices[1])))
-    J     = min(Ny, max(1, floor(Int, float_indices[2])))
-    Jplus = max(1, min(Ny, ceil(Int, float_indices[2])))
-    K     = min(Nz, max(1, floor(Int, float_indices[3])))
-    Kplus = max(1, min(Nz, ceil(Int, float_indices[3])))
-
-    # cartesian indices of neighbours
-    i_000 = CartesianIndex(I, J, K)
-    i_100 = CartesianIndex(Iplus, J, K)
-    i_010 = CartesianIndex(I, Jplus, K)
-    i_001 = CartesianIndex(I, J, Kplus)
-    i_110 = CartesianIndex(Iplus, Jplus, K)
-    i_101 = CartesianIndex(Iplus, J, Kplus)
-    i_011 = CartesianIndex(I, Jplus, Kplus)
-    i_111 = CartesianIndex(Iplus, Jplus, Kplus)
-
-    x = source[1] - ((I-1)*G.h)
-    y = source[2] - ((J-1)*G.h)
-    z = source[3] - ((K-1)*G.h)
-
-    return x, y, z,i_000,i_100,i_010,i_001,i_110,i_101,i_011,i_111
-end
-
-
 function _interp3d(X, x,y,z,
                    i_000,i_100,i_010,i_001,i_110,i_101,i_011,i_111)
     c00 = (1.0-x)*X[i_000] + x*X[i_100]

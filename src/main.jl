@@ -44,7 +44,9 @@ function march(source, G::Grid; sourcebox=true)
     trialheap = MutableBinaryMinHeap{Node}()
     trialhandle = Array{Int}(undef, dims)
 
-    isource = gettimeatsource!(T, source, G, known, unknown, trial, trialheap, trialhandle)
+    T[isource] = 0.0
+    known[isource] = true
+    unknown[isource] = false
 
     _march!(T, isource, G, known, unknown, trial, trialheap, trialhandle; sourcebox)
 
@@ -99,52 +101,6 @@ function _march!(T, isource, G, known, unknown, trial, trialheap, trialhandle; s
         end
     end
 
-end
-
-function gettimeatsource!(T, isource::CartesianIndex{3}, G::Grid, known, unknown, trial, trialheap, trialhandle)
-    T[isource] = 0.0
-    known[isource] = true
-    unknown[isource] = false
-
-    return isource
-end
-
-function gettimeatsource!(T, source::NTuple{3}{Number}, G::Grid, known, unknown, trial, trialheap, trialhandle)
-    
-    x,y,z, IND... = get_interp_coef(source, G)
-    vv = _interp3d(G.Vv, x,y,z,IND...)
-    vh = _interp3d(G.Vh, x,y,z,IND...)
-    t = [get_group_time(vv, vh, x  , y  , z),
-         get_group_time(vv, vh, 1-x, y  , z),
-         get_group_time(vv, vh, x  , 1-y, z),
-         get_group_time(vv, vh, x  , y  , 1-z),
-         get_group_time(vv, vh, 1-x, 1-y, z),
-         get_group_time(vv, vh, 1-x, y  , 1-z),
-         get_group_time(vv, vh, x  , 1-y, 1-z),
-         get_group_time(vv, vh, 1-x, 1-y, 1-z)]
-
-    for k in eachindex(IND)
-        ind = IND[k]
-        T[ind] = t[k]
-        unknown[ind] = false
-        trial[ind] = true
-        trialhandle[ind] = push!(trialheap, Node(ind, T[ind]))
-    end
-
-    nod = pop!(trialheap)
-    isource = nod.index
-    trial[isource] = false
-    known[isource] = true
-
-    return isource
-
-end
-
-function get_group_time(vv, vh, x, y, z)
-    d = sqrt(x^2+y^2+z^2)
-    ga =  acos(z/d)
-    vg = vgroup(vv, vh, ga)
-    return d/vg
 end
 
 function getneighbours!(nhb::Vector{CartesianIndex{3}}, index::CartesianIndex{3})
