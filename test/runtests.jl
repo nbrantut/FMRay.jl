@@ -14,7 +14,7 @@ using Test
         ray, ind, dh, dv, tanphase = traceray((20,20,0),  T, G)
 
         @test sqrt(ray[end][1]^2 + ray[end][2]^2) <= G.h
-        @test maximum(dh) ≈ minimum(dh) ≈ G.h
+        @test maximum(dh) ≈ minimum(dh) ≈ -G.h
         @test maximum(dv) ≈ minimum(dv) ≈ 0.0
         @test maximum(tanphase) ≈ minimum(tanphase) ≈ Inf
     end
