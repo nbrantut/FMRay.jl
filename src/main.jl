@@ -11,15 +11,28 @@ struct Grid
     Vv::AbstractArray
     Vh::AbstractArray
     origin::NTuple{3,Number}
-    "Construct anisotropic velocity model with user-defined origin"
     Grid(h,vv,vh,orig) = size(vv) != size(vh) ? error("Vv and Vh dimensions must be equal") : new(h, vv, vh, orig)
 end
 
-"Construct isotropic velocity model with default origin"
+"""
+    Grid(h,V)
+
+Construct isotropic velocity model with spacing `h` and default origin (index 1,1,1 if position 0.,0.,0.).
+"""
 Grid(h,V) = Grid(h, V, V, (0.,0.,0.))
-"Construct isotropic velocity model with user-defined origin"
+
+"""
+    Grid(h,V,x)
+
+Construct isotropic velocity model with spacing `h` and user-defined origin. Origin `x` is the cartesian coordinate of origin point in the default coordinate system (where index 1,1,1 is at 0.,0.,0.). 
+"""
 Grid(h,V::AbstractArray,x::NTuple{3,Number}) = Grid(h, V, V, x)
-"Construct anisotropic velocity model with default origin"
+
+"""
+    Grid(h,V,H)
+
+Construct anisotropic velocity model with spacing `h`, vertical speed structure `V` and horizontal speed structure `H`,  and default origin (index 1,1,1 is at 0.,0.,0.). 
+"""
 Grid(h,V::AbstractArray,H::AbstractArray) = Grid(h, V, H, (0.,0.,0.))
 
 Base.size(g::Grid) = size(g.Vv)
