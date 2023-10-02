@@ -1,12 +1,9 @@
 name = "FMM"
-uuid = "f2291190-dc29-48cd-bd77-517f48da6df2"
-authors = ["Nicolas Brantut <nicolas.brantut@normalesup.org> and contributors"]
-version = "0.1.0"
+uuid = "6b0cd9bb-a6b1-4712-8c23-90022b1be103"
+authors = ["Nicolas Brantut"]
+version = 0.2.0
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-
-[compat]
-julia = "1"
