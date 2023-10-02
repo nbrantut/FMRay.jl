@@ -12,7 +12,7 @@ end
 
 Method where source positions are given by cartesian coordinates. Requires additionnal origin argument.
 """
-function precomputeT(sources::Vector{NTuple{3,Number}}, G::Grid)
+function precomputeT(sources::Vector{NTuple{3,T}}, G::Grid) where T<:Number
     isrc = [getcartindex(s, G) for s in sources]
     return precomputeT(isrc, G)
 end
@@ -97,6 +97,15 @@ function locatelookup(Ttab, arrivals, σ, h, origin)
 end
 
 """
+	locatelookup(Ttab, arrivals, σ, G::Grid)
+
+Method using Grid as input.
+"""
+function locatelookup(Ttab, arrivals, σ, G::Grid)
+    return locatelookup(Ttab, arrivals, σ, G.h, G.origin)
+end
+
+"""
     locatelookup(Ttab, arrivals, σ, h, origin, n)
 
 Method where grid is refined around best location by a factor `n`, and refined best location is determined based on interpolated arrival times.
@@ -122,4 +131,13 @@ function locatelookup(Ttab, arrivals, σ, h, origin, n)
                                (h*(i-i_m),h*(j-j_m),h*(k-k_m)))
     
     return x0+x1, y0+y1, z0+z1, t0, Tcalc
+end
+
+"""
+	locatelookup(Ttab, arrivals, σ, G::Grid, n)
+
+Method using Grid as input.
+"""
+function locatelookup(Ttab, arrivals, σ, G::Grid, n)
+    return locatelookup(Ttab, arrivals, σ, G.h, G.origin, n)
 end
