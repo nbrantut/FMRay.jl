@@ -1,9 +1,9 @@
 using FMRay
 using Test
 
-@testset "FMM" begin
+@testset "FMRay" begin
 
-    @testset "FMM 2D Isotropic" begin
+    @testset "FMRay 2D Isotropic" begin
         G = Grid(0.1, fill(1.0, (201, 202, 1)))
         isrc = CartesianIndex(1,1,1)
 
@@ -19,7 +19,7 @@ using Test
         @test maximum(tanphase) ≈ minimum(tanphase) ≈ Inf
     end
     
-    @testset "FMM 2D Anisotropic" begin
+    @testset "FMRay 2D Anisotropic" begin
         G = Grid(0.1, fill(1.2, (1, 201, 202)), fill(1.0, (1, 201, 202)))
         isrc = CartesianIndex(1,1,1)
 
@@ -39,7 +39,7 @@ using Test
         @test isapprox(dh[end], dhtrue, rtol=0.06)
     end
 
-    @testset "FMM 3D Anisotropic" begin
+    @testset "FMRay 3D Anisotropic" begin
         G = Grid(0.1, fill(1.2, (101, 102, 103)), fill(1.0, (101, 102, 103)))
         isrc = CartesianIndex(1,1,1)
 
