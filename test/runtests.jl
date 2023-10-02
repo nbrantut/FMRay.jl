@@ -1,4 +1,4 @@
-using FMM
+using FMRay
 using Test
 
 @testset "FMM" begin
