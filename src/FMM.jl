@@ -18,7 +18,4 @@ include("lookup.jl")
 include("refine.jl")
 include("common.jl")
 
-# precompile march
-march(CartesianIndex(1,1,1), Grid(0.1, fill(1.0, (10,10,1))))
-
 end
