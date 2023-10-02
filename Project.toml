@@ -1,7 +1,7 @@
 name = "FMM"
 uuid = "6b0cd9bb-a6b1-4712-8c23-90022b1be103"
 authors = ["Nicolas Brantut"]
-version = 0.2.0
+version = "0.2.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
