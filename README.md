@@ -51,4 +51,4 @@ The function `march` is the Eikonal solver. The first argument is the index of t
 
 ## Examples
 
-The `examples/` directory includes Jupyter notebooks illustrating basic usage of different functions.
+The `examples/` directory includes a Jupyter notebook illustrating basic usage and examples of different functions. The Julia packages `PyPlot` and `StatsBase` are used for illustrative purposes and will need to be added to run and modify the notebook (along with `IJulia` or equivalent).
