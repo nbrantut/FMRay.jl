@@ -1,2 +1,5 @@
 *~
 Manifest.toml
+.DS_Store
+examples/.ipynb_checkpoints/*
+examples/.ipynb_checkpoints

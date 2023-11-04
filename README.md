@@ -48,3 +48,7 @@ T = march(CartesianIndex(1,1,1), G)
 ````
 
 The function `march` is the Eikonal solver. The first argument is the index of the source, and must be entered as a CartesianIndex.
+
+## Examples
+
+The `examples/` directory includes a Jupyter notebook illustrating basic usage and examples of different functions. The Julia packages `PyPlot` and `StatsBase` are used for illustrative purposes and will need to be added to run and modify the notebook (along with `IJulia` or equivalent).
